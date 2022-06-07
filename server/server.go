@@ -61,3 +61,44 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fmt.Sprintf("User has created successfully! ID: %d", lastIdInserted)))
 }
+
+// Get all users
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+	db, erro := database.Connection()
+	if erro != nil {
+		w.Write([]byte("Error when connect to database"))
+		return
+	}
+	defer db.Close()
+
+	rows, erro := db.Query("SELECT * FROM usuarios")
+	if erro != nil {
+		w.Write([]byte("Error when searching users"))
+		return
+	}
+	defer rows.Close()
+
+	var users []user
+
+	for rows.Next() {
+		var user user
+
+		if erro := rows.Scan(&user.ID, &user.Name, &user.Email); erro != nil {
+			w.Write([]byte("Erro when scaning data"))
+			return
+		}
+
+		users = append(users, user)
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	if erro := json.NewEncoder(w).Encode(users); erro != nil {
+		w.Write([]byte("Erro when converting to JSON"))
+	}
+}
+
+// Get specific user
+func GetUser(w http.ResponseWriter, r *http.Request) {
+
+}

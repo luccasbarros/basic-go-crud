@@ -13,6 +13,8 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/users", server.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/users", server.GetUsers).Methods(http.MethodGet)
+	router.HandleFunc("/users/{id}", server.GetUser).Methods(http.MethodGet)
 
 	fmt.Println("Listening port 5000")
 
