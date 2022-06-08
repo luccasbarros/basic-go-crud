@@ -142,3 +142,48 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// Change user data in database
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	ID, erro := strconv.ParseUint(params["id"], 10, 32)
+	if erro != nil {
+		w.Write([]byte("Erro when converting param to int"))
+		return
+	}
+
+	requestBody, erro := ioutil.ReadAll(r.Body)
+	if erro != nil {
+		w.Write([]byte("Erro when reading request body"))
+		return
+	}
+
+	var user user
+	if erro := json.Unmarshal(requestBody, &user); erro != nil {
+		w.Write([]byte("Erro when converting JSON to struct"))
+		return
+	}
+
+	db, erro := database.Connection()
+	if erro := json.Unmarshal(requestBody, &user); erro != nil {
+		w.Write([]byte("Connection error"))
+		return
+	}
+
+	defer db.Close()
+
+	statement, erro := db.Prepare("update usuarios set nome = ?, email = ? where id = ?")
+	if erro != nil {
+		w.Write([]byte("Error when creating statement"))
+		return
+	}
+
+	defer statement.Close()
+
+	if _, erro := statement.Exec(user.Name, user.Email, ID); erro != nil {
+		w.Write([]byte("Error when executing statement"))
+		return
+	}
+
+}
